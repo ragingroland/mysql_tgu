@@ -89,6 +89,21 @@ join
 	gross_salary_dep as gsd using(department)
 order by 4 desc;
 
+--предыдущая задача через оконную функцию
+select 
+	s1.id,
+	s1.first_name,
+	s1.department,
+	s1.gross_salary,
+	round(((s1.gross_salary::numeric / sum(s1.gross_salary) over (partition by s1.department)) * 100), 2) as dep_percent,
+	round(((s1.gross_salary::numeric / sum(s1.gross_salary) over()) * 100), 2) as foundation_percent
+from salary as s1
+order by 4 desc;
+
+
+
+
+
 
 
 
