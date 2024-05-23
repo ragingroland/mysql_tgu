@@ -100,18 +100,23 @@ select
 from salary as s1
 order by 4 desc;
 
+--найти имя сотрудника с самой высокой з/п в департаменте с помощью оконной функции
+select
+	s1.id,
+	s1.department,
+	s1.first_name,
+	s1.gross_salary,
+	first_value(s1.first_name) over(partition by s1.department order by s1.gross_salary desc) as max_salary
+from salary as s1;
 
-
-
-
-
-
-
-
-
-
-
-
+--аналогично, но с самой низкой зарплатой в департаменте
+select
+	s1.id,
+	s1.department,
+	s1.first_name,
+	s1.gross_salary,
+	last_value(s1.first_name) over(partition by s1.department order by s1.gross_salary desc rows between unbounded preceding and unbounded following) as lowest_salary
+from salary as s1;
 
 
 drop table win_func.salary;
