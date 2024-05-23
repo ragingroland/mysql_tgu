@@ -79,19 +79,61 @@ select
 	lag(st.streams_millions::text, 1, 'no views') over(order by st.week asc) as views_last_week,
 	st.streams_millions - (lag(st.streams_millions, 1, st.streams_millions) over(order by st.week asc)) as views_dynamics
 from streams as st
-where artist = 'Bad Bunny'
-order by 1;
+where artist = 'Bad Bunny';
+
 
 --расчет изменения streams_millions и chart_millions от недели к неделе для всех артистов с помощью оконной функции LAG
+--а также вывести динамику места в чарте
 select
 	st.artist,
 	st.week,
 	st.streams_millions,
 	lag(st.streams_millions::text, 1, 'no views') over(partition by st.artist order by st.week asc) as views_last_week,
-	st.streams_millions - (lag(st.streams_millions, 1, st.streams_millions) over(partition by st.artist order by st.week asc)) as views_dynamics
-from streams as st
-order by 1, 2;
+	st.streams_millions - (lag(st.streams_millions, 1, st.streams_millions) over(partition by st.artist order by st.week asc)) as views_dynamics,
+	st.chart_position,
+	(lag(st.chart_position, 1, st.chart_position) over(partition by st.artist order by st.week asc)) - st.chart_position as chart_dynamics
+from streams as st;
 
+--то же самое, но с функцией LEAD и на следующую неделю
+select
+	st.artist,
+	st.week,
+	st.streams_millions,
+	lead(st.streams_millions::text, 1, 'no views') over(partition by st.artist order by st.week asc) as views_next_week,
+	(lead(st.streams_millions, 1, st.streams_millions) over(partition by st.artist order by st.week asc)) - st.streams_millions as views_dynamics,
+	st.chart_position,
+	st.chart_position - (lead(st.chart_position, 1, 0) over(partition by st.artist order by st.week asc)) as chart_dynamics_by_next_week,
+	(lead(st.chart_position, 1, 0) over(partition by st.artist order by st.week asc)) as chart_next_week
+from streams as st;
+
+--получить строку №30
+with artist_cte as
+	(select
+		st.artist,
+		st.week,
+		st.streams_millions,
+		lead(st.streams_millions::text, 1, 'no views') over(partition by st.artist order by st.week asc) as views_next_week,
+		(lead(st.streams_millions, 1, st.streams_millions) over(partition by st.artist order by st.week asc)) - st.streams_millions as views_dynamics,
+		st.chart_position,
+		st.chart_position - (lead(st.chart_position, 1, 0) over(partition by st.artist order by st.week asc)) as chart_dynamics_by_next_week,
+		(lead(st.chart_position, 1, 0) over(partition by st.artist order by st.week asc)) as chart_next_week,
+		row_number() over() as row_num
+	from streams as st)
+select *
+from artist_cte
+where artist_cte.row_num = 30;
+
+--функция RANK
+select
+	st.artist,
+	st.week,
+	st.streams_millions,
+	st.chart_position,
+	rank() over(order by st.streams_millions) as ranked_by_views,
+	dense_rank() over(order by st.streams_millions) as denseranked_by_views
+from streams as st;
+
+--функция NTILE
 
 
 
