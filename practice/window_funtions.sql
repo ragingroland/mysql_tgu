@@ -120,5 +120,3 @@ from salary as s1;
 
 
 drop table win_func.salary;
-drop schema win_func;
-

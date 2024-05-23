@@ -69,3 +69,36 @@ INSERT INTO "streams" VALUES
     ('Lady Gaga',6,36,24),
     ('Lady Gaga',7,30.5,36),
     ('Lady Gaga',8,27,47);
+    
+-- LEAD LAG functions
+-- вывести просмотры за текущую и прошлую неделю, а также динамику просмотров
+select
+	st.artist,
+	st.week,
+	st.streams_millions,
+	lag(st.streams_millions::text, 1, 'no views') over(order by st.week asc) as views_last_week,
+	st.streams_millions - (lag(st.streams_millions, 1, st.streams_millions) over(order by st.week asc)) as views_dynamics
+from streams as st
+where artist = 'Bad Bunny'
+order by 1;
+
+--расчет изменения streams_millions и chart_millions от недели к неделе для всех артистов с помощью оконной функции LAG
+select
+	st.artist,
+	st.week,
+	st.streams_millions,
+	lag(st.streams_millions::text, 1, 'no views') over(partition by st.artist order by st.week asc) as views_last_week,
+	st.streams_millions - (lag(st.streams_millions, 1, st.streams_millions) over(partition by st.artist order by st.week asc)) as views_dynamics
+from streams as st
+order by 1, 2;
+
+
+
+
+
+
+
+
+
+
+drop table streams;

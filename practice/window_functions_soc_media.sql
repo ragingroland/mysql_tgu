@@ -107,22 +107,19 @@ from social_media as sm
 
 --работа PARTITION BY, first_value
 select
-	sm.username,
+	sm.username,	
+	sm.month,
 	sm.posts,
-	first_value(sm.posts) 
-from social_media as sm
+	first_value(sm.posts) over(partition by sm.username order by sm.posts desc) as most_posts_by_months
+from social_media as sm;
 
-
-
-
-
-
-
-
-
-
-
-
+--last_value
+select
+	sm.username,	
+	sm.month,
+	sm.posts,
+	last_value(sm.posts) over(partition by sm.username order by sm.posts rows between unbounded preceding and unbounded following) as "last_value"
+from social_media as sm;
 
 
 drop table social_media;
