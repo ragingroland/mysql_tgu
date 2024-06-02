@@ -6029,3 +6029,78 @@ INSERT INTO "state_climate" VALUES
     ('Wyoming',2018,42.40833333,5.782407407);
 INSERT INTO "state_climate" VALUES
     ('Wyoming',2019,40.38333333,4.657407407);
+    
+-- как меняется температура в каждом штате с течением времени
+select
+	state,
+	year,
+	tempf,
+	tempc,
+	avg(tempf) over(partition by state order by year) as average_tempf,
+	avg(tempc) over(partition by state order by year) as average_tempc
+from state_climate sc;
+
+--самая низкая температура по каждому штату
+select
+	state,
+	year,
+	tempf,
+	tempc,
+	first_value(tempf) over(partition by state order by tempf) as min_tempf,
+	first_value(tempc) over(partition by state order by tempc) as min_tempc
+from state_climate sc;
+
+--самая высокая температура по каждому штату
+select
+	state,
+	year,
+	tempf,
+	tempc,
+	last_value(tempf) over(partition by state order by tempf range between unbounded preceding and unbounded following) as max_tempf,
+	last_value(tempc) over(partition by state order by tempc range between unbounded preceding and unbounded following) as max_tempc
+from state_climate sc;
+   
+--насколько меняется температура каждый год
+select
+   	state,
+	year,
+	tempf,
+	tempc,
+	tempf - lag(tempf, 1, tempf) over(partition by state order by year) as lastyear_tempf,
+	tempc - lag(tempc, 1, tempc) over(partition by state order by year) as lastyear_tempc
+from state_climate sc;
+
+--самая низкая температура за всю историю
+select
+   	state,
+	year,
+	tempf,
+	tempc,
+	rank() over(order by tempf) as lowest_tempf,
+	rank() over(order by tempc) as lowest_tempc
+from state_climate sc;
+
+--самая высокая температура по штатам
+select
+   	state,
+	year,
+	tempf,
+	tempc,
+	rank() over(partition by state order by tempf desc) as highest_tempf,
+	rank() over(partition by state order by tempc desc ) as highest_tempc
+from state_climate sc;
+
+--среднегодовые температуры в квартилях и квантилях для каждого штата
+select
+   	state,
+	year,
+	tempf,
+	tempc,
+	ntile(4) over(partition by state order by tempf) as quart_tempf,
+	ntile(5) over(partition by state order by tempf) as quant_tempf,
+	ntile(4) over(partition by state order by tempc) as quart_tempc,
+	ntile(5) over(partition by state order by tempc) as quant_tempc
+from state_climate sc;
+
+
+drop table state_climate;

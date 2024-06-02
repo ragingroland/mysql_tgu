@@ -134,6 +134,19 @@ select
 from streams as st;
 
 --функция NTILE
+select
+	st.artist,
+	st.week,
+	st.streams_millions,
+	ntile(4) over(partition by st.week order by st.streams_millions desc) as quart
+from streams as st
+order by 4;
+
+
+
+
+
+
 
 
 
