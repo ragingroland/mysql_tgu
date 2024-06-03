@@ -37,5 +37,5 @@ create table Comment (
 	product_id int,
 	foreign key (product_id) references Product(product_id),
 	`text` text not null);
-	
+
 drop database store;
